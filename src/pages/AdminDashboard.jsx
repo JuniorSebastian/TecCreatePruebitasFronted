@@ -18,47 +18,45 @@ export default function AdminDashboard() {
   const [seccionActiva, setSeccionActiva] = useState('usuarios');
 
   useEffect(() => {
-  const timeout = setTimeout(() => {
-    const storedUser = localStorage.getItem('usuario');
-    const usuario = storedUser ? JSON.parse(storedUser) : null;
+    const usuarioRaw = localStorage.getItem('usuario');
+    const usuario = usuarioRaw ? JSON.parse(usuarioRaw) : null;
 
     if (!usuario || usuario.rol !== 'admin') {
-      navigate('/perfil');
-    } else {
-      setAdmin(usuario);
-      fetch('http://localhost:3001/admin/usuarios', {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`
-        }
-      })
-        .then(res => res.json())
-        .then(data => {
-          if (Array.isArray(data)) {
-            const hoy = new Date().toISOString();
-            const adminData = {
-              nombre: usuario.nombre,
-              correo: usuario.correo,
-              foto: usuario.foto,
-              titulo: null,
-              fecha_creacion: hoy,
-              estado: 'ADMIN'
-            };
-            const sinAdmin = data.filter(u => u.correo !== usuario.correo);
-            setUsuarios([adminData, ...sinAdmin]);
-          } else {
-            setUsuarios([]);
-          }
-        })
-        .catch(err => {
-          console.error('Error al obtener usuarios:', err);
-          setUsuarios([]);
-        });
+      return navigate('/perfil');
     }
-  }, 100);
 
-  return () => clearTimeout(timeout);
-}, [navigate]);
+    setAdmin(usuario);
 
+    const fetchUsuarios = async () => {
+      try {
+        const res = await fetch(`${process.env.REACT_APP_API_URL}/admin/usuarios`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+
+        const data = await res.json();
+        if (!Array.isArray(data)) return setUsuarios([]);
+
+        const adminData = {
+          nombre: usuario.nombre,
+          correo: usuario.correo,
+          foto: usuario.foto,
+          titulo: null,
+          fecha_creacion: new Date().toISOString(),
+          estado: 'ADMIN'
+        };
+
+        const sinAdmin = data.filter(u => u.correo !== usuario.correo);
+        setUsuarios([adminData, ...sinAdmin]);
+      } catch (err) {
+        console.error('Error al obtener usuarios:', err);
+        setUsuarios([]);
+      }
+    };
+
+    fetchUsuarios();
+  }, [navigate]);
 
   const cerrarSesion = () => {
     localStorage.removeItem('token');
@@ -119,41 +117,38 @@ export default function AdminDashboard() {
           </div>
 
           <nav className="p-4 space-y-2">
-            {menuItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => setSeccionActiva(item.id)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${
-                    seccionActiva === item.id
-                      ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md'
-                      : 'hover:bg-gray-100 text-gray-700'
-                  }`}
-                >
-                  <Icon className="w-5 h-5" />
-                  {item.label}
-                  {item.id === 'usuarios' && (
-                    <span className="ml-auto bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
-                      {usuarios.length}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
+            {menuItems.map(({ id, label, icon: Icon }) => (
+              <button
+                key={id}
+                onClick={() => setSeccionActiva(id)}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${
+                  seccionActiva === id
+                    ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md'
+                    : 'hover:bg-gray-100 text-gray-700'
+                }`}
+              >
+                <Icon className="w-5 h-5" />
+                {label}
+                {id === 'usuarios' && (
+                  <span className="ml-auto bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+                    {usuarios.length}
+                  </span>
+                )}
+              </button>
+            ))}
           </nav>
         </div>
 
-        {/* Perfil Admin + Cerrar sesión */}
+        {/* Perfil Admin + Logout */}
         {admin && (
           <div className="p-4 border-t flex items-center gap-3">
             <img
               src={admin.foto || `https://ui-avatars.com/api/?name=${encodeURIComponent(admin.nombre)}`}
+              alt={admin.nombre}
               onError={(e) => {
                 e.target.onerror = null;
                 e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(admin.nombre)}`;
               }}
-              alt={admin.nombre}
               className="w-10 h-10 rounded-full object-cover border-2 border-blue-200"
             />
             <div className="flex-1">
@@ -179,18 +174,16 @@ export default function AdminDashboard() {
             <p className="text-gray-600">Administra los usuarios de TEC CREATE</p>
           </div>
 
-          <div className="flex gap-3">
-            <button
-              onClick={exportarCSV}
-              className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
-            >
-              <ArrowDownTrayIcon className="w-4 h-4" />
-              Exportar CSV
-            </button>
-          </div>
+          <button
+            onClick={exportarCSV}
+            className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+          >
+            <ArrowDownTrayIcon className="w-4 h-4" />
+            Exportar CSV
+          </button>
         </div>
 
-        {/* Search */}
+        {/* Search Bar */}
         <div className="bg-white rounded-xl shadow-sm border p-4 mb-6">
           <div className="relative">
             <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -209,11 +202,14 @@ export default function AdminDashboard() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Usuario</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Proyecto</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
+                {['Usuario', 'Proyecto', 'Fecha', 'Email', 'Estado'].map((header, idx) => (
+                  <th
+                    key={idx}
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"
+                  >
+                    {header}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">

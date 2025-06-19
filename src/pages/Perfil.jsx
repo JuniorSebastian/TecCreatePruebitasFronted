@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline';
+import { obtenerMisPresentaciones } from '../services/api'; // ✅ import desde servicios
 
 function LoadingScreen() {
   return (
@@ -71,21 +72,10 @@ export default function Perfil() {
 
   useEffect(() => {
     const fetchPresentaciones = async () => {
-      const token = localStorage.getItem('token');
-      if (!token) return;
-
       setCargandoPresentaciones(true);
-
       try {
-        const res = await fetch('http://localhost:3001/presentaciones/mias', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!res.ok) throw new Error('Error al obtener presentaciones');
-
-        const data = await res.json();
+        const res = await obtenerMisPresentaciones();
+        const data = res.data;
         setPresentaciones(data);
 
         if (location.state?.nuevaPresentacion) {
@@ -93,7 +83,7 @@ export default function Perfil() {
           navigate('/perfil', { replace: true });
         }
       } catch (error) {
-        console.error(error);
+        console.error('Error al obtener presentaciones', error);
       } finally {
         setCargandoPresentaciones(false);
       }
@@ -157,11 +147,7 @@ export default function Perfil() {
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-full overflow-hidden shadow-md">
-              <img
-                src={usuario.foto}
-                alt="Avatar"
-                className="w-full h-full object-cover"
-              />
+              <img src={usuario.foto} alt="Avatar" className="w-full h-full object-cover" />
             </div>
             <div>
               <p className="text-lg font-semibold text-gray-700">{usuario.nombre}</p>

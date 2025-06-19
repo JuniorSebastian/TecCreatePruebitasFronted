@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router-dom';
+import { crearPresentacion } from '../services/api';
 
 const estilos = ['Default', 'Modern', 'Minimal'];
 const idiomas = ['English', 'Spanish', 'French'];
@@ -12,13 +13,13 @@ export default function CrearPresentacion() {
   const [slides, setSlides] = useState(4);
   const [estilo, setEstilo] = useState('Default');
   const [idioma, setIdioma] = useState('English');
+  const [textLength, setTextLength] = useState('Medium');
   const [outline, setOutline] = useState([
     'Introduction to Topic',
     'Main Points',
     'Examples or Case Studies',
-    'Conclusion'
+    'Conclusion',
   ]);
-  const [textLength, setTextLength] = useState('Medium');
   const [loading, setLoading] = useState(false);
 
   const handleAddCard = () => setOutline([...outline, '']);
@@ -39,30 +40,22 @@ export default function CrearPresentacion() {
       return;
     }
 
-    setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3001/presentaciones', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-  titulo: prompt,
-  contenido: JSON.stringify(outline), // o outline.join('\n') si no usas JSON
-  idioma,
-  plantilla: estilo,
-  fuente: textLength,
-  numero_slides: slides
-}),
+      setLoading(true);
+      const res = await crearPresentacion({
+        titulo: prompt,
+        contenido: JSON.stringify(outline),
+        idioma,
+        plantilla: estilo,
+        fuente: textLength,
+        numero_slides: slides,
       });
 
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || 'Error al crear presentación');
-
-      // ✅ Redirigir a la vista individual de la presentación creada
-      navigate(`/presentacion/${data.id}`);
+      if (res?.id) {
+        navigate(`/presentacion/${res.id}`);
+      } else {
+        throw new Error('No se recibió ID de presentación');
+      }
     } catch (err) {
       console.error('Error:', err);
       alert('Hubo un problema al crear la presentación');
@@ -93,7 +86,7 @@ export default function CrearPresentacion() {
         <textarea
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
-          placeholder="make a presentation for world war 2"
+          placeholder="make a presentation for World War 2"
           className="w-full p-4 rounded border shadow-sm min-h-[100px]"
         />
       </div>
@@ -119,16 +112,17 @@ export default function CrearPresentacion() {
         </div>
         <button
           onClick={handleAddCard}
-          className="mt-4 flex items-center gap-2 text-blue-600 font-medium hover:underline">
-          <PlusIcon className="w-5 h-5" /> Add card
+          className="mt-4 flex items-center gap-2 text-blue-600 font-medium hover:underline"
+        >
+          <PlusIcon className="w-5 h-5" /> Agregar tarjeta
         </button>
-        <p className="text-sm text-gray-500 mt-1">{outline.length} cards total · {prompt.length}/20000</p>
+        <p className="text-sm text-gray-500 mt-1">{outline.length} tarjetas · {prompt.length}/20000 caracteres</p>
       </div>
 
       {/* Settings Section */}
       <div className="mb-6">
-        <label className="block text-lg font-semibold text-gray-800 mb-2">Settings</label>
-        <p className="mb-2 text-gray-700">Amount of text per card:</p>
+        <label className="block text-lg font-semibold text-gray-800 mb-2">Configuración</label>
+        <p className="mb-2 text-gray-700">Cantidad de texto por tarjeta:</p>
         <div className="flex gap-4">
           {['Brief', 'Medium', 'Detailed'].map(option => (
             <button
@@ -136,8 +130,9 @@ export default function CrearPresentacion() {
               onClick={() => setTextLength(option)}
               className={`px-4 py-2 rounded-full border font-medium shadow-sm flex items-center gap-2 ${
                 textLength === option ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'
-              }`}>
-              <span>{option}</span>
+              }`}
+            >
+              {option}
             </button>
           ))}
         </div>
@@ -148,7 +143,8 @@ export default function CrearPresentacion() {
         <button
           onClick={handleSubmit}
           disabled={loading}
-          className="bg-blue-600 text-white px-6 py-3 rounded-full font-semibold hover:bg-blue-700 transition disabled:opacity-50">
+          className="bg-blue-600 text-white px-6 py-3 rounded-full font-semibold hover:bg-blue-700 transition disabled:opacity-50"
+        >
           {loading ? 'Generando...' : 'Generar Presentación'}
         </button>
       </div>

@@ -2,7 +2,15 @@ import React from 'react';
 
 export default function GoogleLoginButton() {
   const handleLogin = () => {
-    window.location.href = 'http://localhost:3001/auth/google'; // Redirige al backend
+    const apiUrl = process.env.REACT_APP_API_URL;
+
+    if (!apiUrl) {
+      console.error('❌ No se encontró REACT_APP_API_URL en .env');
+      alert('Error de configuración. Contacta al administrador.');
+      return;
+    }
+
+    window.location.href = `${apiUrl}/auth/google`;
   };
 
   return (

@@ -1,5 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import {
+  obtenerPresentacionPorId,
+  actualizarPresentacion,
+  eliminarPresentacion,
+} from '../services/api';
 
 export default function Editor() {
   const { id } = useParams();
@@ -8,41 +13,20 @@ export default function Editor() {
   const [outline, setOutline] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const token = localStorage.getItem('token');
-
-  const API_URL = 'http://localhost:3001'; // ✅ Usa backend correcto
-
   useEffect(() => {
     const fetchPresentacion = async () => {
-      if (!token) {
-        alert('Sesión expirada. Inicia sesión nuevamente.');
-        return navigate('/');
-      }
-
       try {
-        const res = await fetch(`${API_URL}/presentaciones/${id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        const contentType = res.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-          throw new Error('Respuesta inválida del servidor');
-        }
-
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.message || 'Error al cargar la presentación');
-
+        const data = await obtenerPresentacionPorId(id);
         setTitulo(data.titulo || '');
 
-        const parsedContenido =
-          typeof data.contenido === 'string' ? JSON.parse(data.contenido) : data.contenido;
+        const contenido = typeof data.contenido === 'string'
+          ? JSON.parse(data.contenido)
+          : data.contenido;
 
-        if (Array.isArray(parsedContenido)) {
-          setOutline(parsedContenido);
-        } else if (parsedContenido?.outline) {
-          setOutline(parsedContenido.outline);
+        if (Array.isArray(contenido)) {
+          setOutline(contenido);
+        } else if (contenido?.outline) {
+          setOutline(contenido.outline);
         } else {
           setOutline([]);
         }
@@ -56,27 +40,17 @@ export default function Editor() {
     };
 
     fetchPresentacion();
-  }, [id, token, navigate]);
+  }, [id, navigate]);
 
   const handleGuardarCambios = async () => {
-    if (!titulo.trim()) {
-      return alert('El título no puede estar vacío');
-    }
+    if (!titulo.trim()) return alert('El título no puede estar vacío');
 
     try {
-      const res = await fetch(`${API_URL}/presentaciones/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          titulo,
-          contenido: JSON.stringify({ outline }),
-        }),
+      await actualizarPresentacion(id, {
+        titulo,
+        contenido: JSON.stringify({ outline }),
       });
 
-      if (!res.ok) throw new Error('Error al guardar los cambios');
       alert('Cambios guardados con éxito');
     } catch (err) {
       console.error(err);
@@ -85,18 +59,11 @@ export default function Editor() {
   };
 
   const handleEliminar = async () => {
-    const confirmar = window.confirm('¿Estás seguro de que deseas eliminar esta presentación?');
+    const confirmar = window.confirm('¿Deseas eliminar esta presentación?');
     if (!confirmar) return;
 
     try {
-      const res = await fetch(`${API_URL}/presentaciones/${id}`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!res.ok) throw new Error('Error al eliminar');
+      await eliminarPresentacion(id);
       alert('Presentación eliminada');
       navigate('/perfil');
     } catch (err) {

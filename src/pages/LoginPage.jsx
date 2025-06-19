@@ -1,11 +1,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { iniciarSesionConGoogle } from '../services/api';
 
 export default function LoginPage() {
-  const handleGoogleLogin = () => {
-    window.location.href = 'http://localhost:3001/auth/google';
-  };
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-tr from-blue-100 via-white to-blue-200 px-4">
       <motion.div
@@ -14,7 +11,7 @@ export default function LoginPage() {
         transition={{ duration: 0.6, ease: 'easeOut' }}
         className="bg-white p-12 rounded-3xl shadow-2xl w-full max-w-2xl text-center border"
       >
-        {/* Logo actualizado sin fondo y grande */}
+        {/* Logo */}
         <img
           src="https://i.ibb.co/Q3JXxDPY/Chat-GPT-Image-13-jun-2025-22-14-04-removebg-preview-Photoroom.png"
           alt="TecCreate Logo"
@@ -28,7 +25,7 @@ export default function LoginPage() {
         </p>
 
         <button
-          onClick={handleGoogleLogin}
+          onClick={iniciarSesionConGoogle}
           className="flex items-center justify-center w-full bg-white border border-gray-300 hover:shadow-lg hover:bg-gray-50 text-gray-700 font-semibold py-3 rounded-lg transition-all duration-300 text-lg"
         >
           <svg
