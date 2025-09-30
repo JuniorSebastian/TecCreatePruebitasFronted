@@ -76,7 +76,42 @@ export const obtenerUsuariosAdmin = () =>
  * Inicia flujo de autenticación con Google
  */
 export const iniciarSesionConGoogle = () => {
-  window.location.href = `${API_BASE_URL}/auth/google`;
+  try {
+    // 🔍 DEBUG: Verificar variables de entorno
+    console.log('🔍 DEBUG process.env.REACT_APP_API_URL:', process.env.REACT_APP_API_URL);
+    console.log('🔍 DEBUG API_BASE_URL:', API_BASE_URL);
+    
+    // ✅ Detecta automáticamente si estás en local o producción
+    const currentOrigin = window.location.origin;
+    
+    // ✅ Asegurar que no haya barras dobles en la URL de redirect
+    const redirectUrl = `${currentOrigin}/oauth-success`;
+    const cleanRedirectUrl = redirectUrl.replace(/([^:]\/)\/+/g, '$1'); // Eliminar barras dobles
+    
+    // ✅ Limpiar API_BASE_URL de barras finales
+    const cleanApiUrl = API_BASE_URL.replace(/\/+$/, '');
+    
+    // 🔍 Construir URL paso a paso para debug
+    const fullUrl = `${cleanApiUrl}/auth/google?redirect=${encodeURIComponent(cleanRedirectUrl)}`;
+    
+    console.log('🚀 Iniciando OAuth con redirect:', cleanRedirectUrl);
+    console.log('🌐 Backend URL limpia:', cleanApiUrl);
+    console.log('🔗 URL completa:', fullUrl);
+    
+    // ✅ Verificar que no haya doble slash
+    if (fullUrl.includes('//auth/') || cleanRedirectUrl.includes('//oauth-success')) {
+      console.error('❌ DETECTADO DOBLE SLASH! URL problemática:', fullUrl);
+      console.error('❌ Redirect URL:', cleanRedirectUrl);
+      alert('Error en configuración de URL. Revisa la consola.');
+      return;
+    }
+    
+    // ✅ Envía al backend la URL correcta de callback
+    window.location.href = fullUrl;
+  } catch (error) {
+    console.error('❌ Error iniciando sesión con Google:', error);
+    alert('Error al iniciar sesión. Por favor intenta de nuevo.');
+  }
 };
 
 // =======================

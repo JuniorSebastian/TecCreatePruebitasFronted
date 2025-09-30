@@ -1,16 +1,10 @@
 import React from 'react';
+import { iniciarSesionConGoogle } from '../services/api';
 
 export default function GoogleLoginButton() {
   const handleLogin = () => {
-    const apiUrl = process.env.REACT_APP_API_URL;
-
-    if (!apiUrl) {
-      console.error('❌ No se encontró REACT_APP_API_URL en .env');
-      alert('Error de configuración. Contacta al administrador.');
-      return;
-    }
-
-    window.location.href = `${apiUrl}/auth/google`;
+    // ✅ Usa la función centralizada que maneja correctamente el redirect
+    iniciarSesionConGoogle();
   };
 
   return (
