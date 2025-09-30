@@ -1,70 +1,110 @@
-# Getting Started with Create React App
+# TecCreate Frontend (Local)
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Este proyecto frontend React se conecta con el backend TecCreate ejecutándose en `localhost:3001`.
 
-## Available Scripts
+## 🚀 Configuración Rápida
 
-In the project directory, you can run:
+### Prerrequisitos
+- Node.js 18 o superior
+- Backend TecCreate ejecutándose en puerto 3001
+- PostgreSQL configurado (ver README del backend)
 
-### `npm start`
+### Instalación y Ejecución
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+1. **Instalar dependencias:**
+   ```powershell
+   npm install
+   ```
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+2. **Verificar configuración:**
+   - El archivo `.env` debe tener `REACT_APP_API_URL=http://localhost:3001`
+   - El backend debe estar ejecutándose en puerto 3001
 
-### `npm test`
+3. **Iniciar el frontend:**
+   ```powershell
+   npm start
+   ```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+El frontend estará disponible en `http://localhost:3000`
 
-### `npm run build`
+## 🔧 Configuración de Entorno
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Variables de Entorno (`.env`)
+```
+REACT_APP_API_URL=http://localhost:3001
+PORT=3000
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### Puertos
+- **Frontend (React):** `localhost:3000`
+- **Backend (Node.js):** `localhost:3001`
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## 🌐 Flujo de Autenticación
 
-### `npm run eject`
+1. Usuario hace clic en "Iniciar sesión con Google"
+2. Se redirige a: `http://localhost:3001/auth/google`
+3. Google OAuth procesa la autenticación
+4. Redirige de vuelta a: `http://localhost:3000/oauth-success?token=...&user=...`
+5. El frontend guarda el token y redirige según el rol del usuario
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## 📋 Verificación Rápida
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+1. **Backend funcionando:**
+   ```powershell
+   curl http://localhost:3001/
+   ```
+   Debería responder sin errores.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+2. **Frontend funcionando:**
+   - Abre `http://localhost:3000`
+   - Debería cargar la página de inicio
+   - No debería haber errores en la consola del navegador
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+3. **Autenticación funcionando:**
+   - Haz clic en "Iniciar sesión con Google"
+   - Debería redirigir al backend correctamente
+   - Después de autenticarte, deberías ver el dashboard
 
-## Learn More
+## 🐛 Problemas Comunes
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+### Error de CORS
+Si ves errores de CORS, verifica que el backend tenga configurado `CLIENT_URL=http://localhost:3000` en su `.env`.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### Error 404 en rutas
+Si las rutas del frontend no funcionan después de recargar, esto es normal en desarrollo. React Router maneja las rutas en el cliente.
 
-### Code Splitting
+### Error de conexión al backend
+- Verifica que el backend esté ejecutándose en puerto 3001
+- Comprueba que `REACT_APP_API_URL` en `.env` sea correcta
+- Reinicia ambos servidores si es necesario
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+### Google OAuth no funciona
+- Verifica que el backend tenga configuradas correctamente las credenciales de Google
+- Asegúrate de que `GOOGLE_CALLBACK_URL` en el backend sea `http://localhost:3001/auth/google/callback`
+- Comprueba que la cuenta de Google que usas sea del dominio `@tecsup.edu.pe`
 
-### Analyzing the Bundle Size
+## 📁 Estructura del Proyecto
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+```
+src/
+├── components/         # Componentes reutilizables
+├── pages/             # Páginas principales
+├── services/          # Configuración de API (axios)
+└── styles/            # Estilos CSS/Tailwind
+```
 
-### Making a Progressive Web App
+## 🔄 Scripts Disponibles
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+- `npm start` - Inicia el servidor de desarrollo
+- `npm run build` - Construye la aplicación para producción
+- `npm test` - Ejecuta las pruebas
+- `npm run eject` - Expone la configuración de webpack (no reversible)
 
-### Advanced Configuration
+## 📚 Tecnologías Utilizadas
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- **React 19** - Framework principal
+- **React Router** - Enrutamiento
+- **Axios** - Cliente HTTP
+- **Tailwind CSS** - Estilos
+- **Framer Motion** - Animaciones
+- **Headless UI** - Componentes accesibles
